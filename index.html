@@ -1,171 +1,277 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Certificate Sender</title>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<title>Certificate Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Pinyon+Script&family=Playfair+Display:wght@500;700&family=Cormorant+Garamond:wght@600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;600;700&family=Lora:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f5f3ee;--card:#fff;--tx:#1f2a37;--mut:#6b7280;--bd:#e3ded3;--pr:#0f5c4d;--pt:#fff}
 @media(prefers-color-scheme:dark){:root{--bg:#10171a;--card:#182126;--tx:#eaf0ee;--mut:#98a5a3;--bd:#2a373c;--pr:#4fc3a1;--pt:#06231b}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Inter,system-ui,sans-serif}
-main{max-width:860px;margin:0 auto;padding:32px 18px 80px}
+main{max-width:900px;margin:0 auto;padding:32px 18px 120px}
 h1{font:700 2.2rem/1.1 "Playfair Display",serif;margin:0 0 6px}
 h2{font:700 1.3rem "Playfair Display",serif;margin:0 0 4px}
 .sub{color:var(--mut);margin:0 0 28px}
 section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px;margin-bottom:18px}
-section p.h{color:var(--mut);margin:0 0 16px;font-size:.92rem}
+p.h{color:var(--mut);margin:0 0 16px;font-size:.92rem}
 .g{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:620px){.g{grid-template-columns:1fr}}
 label{display:block;font-weight:600;font-size:.88rem}
-input,textarea{width:100%;margin-top:5px;padding:10px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--tx);font:inherit}
+input,textarea,select{width:100%;margin-top:5px;padding:10px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--tx);font:inherit}
+select option{color:#000}
 input[type=color]{height:42px;padding:3px}
+input[type=range]{padding:0;accent-color:var(--pr)}
 textarea{min-height:84px;resize:vertical}
 .w{grid-column:1/-1}
 button{font:600 1rem Inter,sans-serif;padding:11px 20px;border-radius:8px;border:1px solid var(--pr);background:var(--pr);color:var(--pt);cursor:pointer}
 button.o{background:transparent;color:var(--pr)}
-button:disabled{opacity:.5;cursor:wait}
 :focus-visible{outline:3px solid var(--pr);outline-offset:2px}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.rw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px;align-items:center}
+.rw input{margin:0}
 table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:12px}
 td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd)}
 .tw{max-height:260px;overflow:auto}
 .ok{color:var(--pr);font-weight:600}.bad{color:#c0392b;font-weight:600}
-#prev{width:100%;border:1px solid var(--bd);border-radius:8px;margin-top:14px}
-#bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin-top:14px}
+#pc{width:100%;height:auto;border:1px solid var(--bd);border-radius:8px;margin-top:16px}
+#dock{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 18px}
+#bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
 #bar i{display:block;height:100%;width:0;background:var(--pr);transition:width .2s}
 details summary{cursor:pointer;font-weight:600}
 small{color:var(--mut)}
 </style></head><body><main>
-<h1>Certificate Sender</h1>
-<p class="sub">Upload your participant list, preview the certificate, and email everyone with one click.</p>
+<h1>Certificate Studio</h1>
+<p class="sub">Design certificates and speaker citations in your organization's style, then download or email them in one click.</p>
 
-<section><h2>1. Your organization</h2><p class="h">These details are printed on every certificate. They are saved in this browser.</p>
+<section><h2>1. Your organization</h2><p class="h">These details are printed on your documents and saved in this browser. In the wording you can use {name}, {event}, {org}, {date} and {topic}.</p>
 <div class="g">
-<label>Organization name<input id="org" placeholder="Bright Minds Foundation"></label>
-<label>Event name<input id="event" placeholder="Youth Leadership Summit"></label>
-<label>Event date<input id="date" placeholder="Saturday, 14 November 2026"></label>
-<label>Certificate title<input id="title" value="Certificate of Participation"></label>
-<label class="w">Certificate wording <small>(use {name}, {event}, {org}, {date})</small><textarea id="body">for participating in {event}, organized by {org} on {date}.</textarea></label>
+<label>Organization name<input id="org" data-s placeholder="Bright Minds Foundation"></label>
+<label>Event name<input id="event" data-s placeholder="Youth Leadership Summit"></label>
+<label>Event date<input id="date" data-s placeholder="Saturday, 14 November 2026"></label>
 <label>Logo<input id="logo" type="file" accept="image/*"></label>
-<label>Brand color<input id="color" type="color" value="#0f5c4d"></label>
-<label>Signer name<input id="signer" placeholder="Ama Mensah"></label>
-<label>Signer role<input id="role" placeholder="Executive Director"></label>
-<label>Signature image <small>(optional)</small><input id="sig" type="file" accept="image/*"></label>
+<label>Certificate title<input id="title" data-s value="Certificate of Participation"></label>
+<label>Citation title<input id="ctitle" data-s value="Citation of Appreciation"></label>
+<label class="w">Certificate wording<textarea id="body" data-s>in appreciation of your active participation and valuable contribution at {event}, held online on {date}.</textarea></label>
+<label class="w">Citation wording<textarea id="cbody" data-s>in grateful appreciation for your inspiring session on “{topic}” delivered as a speaker at {event}, organized by {org} on {date}.</textarea></label>
 </div></section>
 
-<section><h2>2. Participants</h2><p class="h">Upload an Excel or CSV file with columns named <b>Name</b> and <b>Email</b>.</p>
+<section><h2>2. Signatories</h2><p class="h">Add everyone who signs. They are spaced evenly along the bottom. For each person, you can choose a signature image.</p>
+<div id="sg"></div><button class="o" id="addsg">Add signatory</button></section>
+
+<section><h2>3. Design and live preview</h2><p class="h">Pick a style, then adjust colors, fonts and sizes. The preview updates as you change things.</p>
+<div class="g">
+<label>Design style<select id="style" data-s><option value="classic">Classic double border</option><option value="modern">Modern side band</option><option value="elegant">Elegant corners</option><option value="bold">Bold top and bottom bands</option><option value="minimal">Minimal line</option></select></label>
+<label>Preview<select id="pk"><option value="c">Certificate</option><option value="r">Speaker citation</option></select></label>
+<label>Certificate size<select id="csz" data-s></select></label>
+<label>Citation size<select id="rsz" data-s></select></label>
+<label>Main color<input type="color" id="c1" data-s value="#0f5c4d"></label>
+<label>Accent color<input type="color" id="c2" data-s value="#b8913a"></label>
+<label>Background color<input type="color" id="c3" data-s value="#ffffff"></label>
+<label>Text color<input type="color" id="c4" data-s value="#1f2a37"></label>
+<label>Heading font<select id="hf" data-s></select></label>
+<label>Name font<select id="nf" data-s></select></label>
+<label>Logo size<input type="range" id="ls" data-s min="30" max="200" value="100"></label>
+<label>Signature size<input type="range" id="ss" data-s min="30" max="200" value="100"></label>
+<label>Speaker photo size<input type="range" id="ps" data-s min="40" max="160" value="100"></label>
+<label>Speaker photo shape<select id="psh" data-s><option value="circle">Circle</option><option value="round">Rounded square</option><option value="square">Square</option></select></label>
+</div>
+<canvas id="pc" width="1754" height="1240"></canvas></section>
+
+<section><h2>4. Participants and certificates</h2><p class="h">Upload an Excel or CSV file with columns named <b>Name</b> and <b>Email</b>.</p>
 <input id="xl" type="file" accept=".xlsx,.xls,.csv">
 <div id="count" class="sub" style="margin:10px 0 0"></div>
-<div class="tw"><table id="tb"></table></div></section>
-
-<section><h2>3. Email message</h2><p class="h">Each participant gets their own email with their certificate attached as a PDF.</p>
-<div class="g">
-<label class="w">Subject<input id="subject" value="Your certificate for {event}"></label>
-<label class="w">Message<textarea id="msg">Hi {name},
+<div class="tw"><table id="tb"></table></div>
+<div class="g" style="margin-top:16px">
+<label class="w">Email subject<input id="subject" data-s value="Your certificate for {event}"></label>
+<label class="w">Email message<textarea id="msg" data-s>Hi {name},
 
 Thank you for joining {event}! Your certificate is attached.
 
 Warm regards,
-{org}</textarea></label></div></section>
-
-<section><h2>4. Preview and send</h2><p class="h">Check the design first, then send.</p>
-<div class="row"><button class="o" id="pv">Preview certificate</button><button class="o" id="dl">Download all as ZIP</button><button id="go">Send certificates</button></div>
-<img id="prev" alt="" hidden>
-<div id="bar" hidden><i></i></div><div id="st" class="sub" style="margin:8px 0 0"></div>
+{org}</textarea></label></div>
+<div class="row"><button class="o" id="dl">Download certificates (ZIP)</button><button id="go">Email certificates</button></div>
 <details style="margin-top:18px"><summary>Email connection (one-time setup)</summary>
-<p class="h" style="margin-top:10px">Paste the Web app URL from your Google Apps Script and the secret passcode you chose. See the setup guide.</p>
-<div class="g"><label>Web app URL<input id="url" placeholder="https://script.google.com/macros/s/.../exec"></label>
-<label>Passcode<input id="pass" type="password" placeholder="your secret word"></label></div></details>
-</section></main>
+<p class="h" style="margin-top:10px">Paste the Web app URL from your Google Apps Script and your secret passcode.</p>
+<div class="g"><label>Web app URL<input id="url" data-s placeholder="https://script.google.com/macros/s/.../exec"></label>
+<label>Passcode<input id="pass" data-s type="password"></label></div></details></section>
+
+<section><h2>5. Speaker citations</h2><p class="h">Add each speaker with their photo. Email is optional; without it you can still download the citation.</p>
+<div id="spk"></div><button class="o" id="addsp">Add speaker</button>
+<div class="g" style="margin-top:16px">
+<label class="w">Email subject<input id="csub" data-s value="A citation of appreciation from {org}"></label>
+<label class="w">Email message<textarea id="cmsg" data-s>Dear {name},
+
+Thank you for speaking on “{topic}” at {event}. Please find your citation of appreciation attached.
+
+With gratitude,
+{org}</textarea></label>
+<label>Download format<select id="fmt" data-s><option value="pdf">PDF</option><option value="png">PNG image</option></select></label></div>
+<div class="row"><button class="o" id="dlr">Download citations (ZIP)</button><button id="gor">Email citations</button></div></section>
+<section><h2>6. Bulk email</h2><p class="h">Send updates about the conference to everyone, without a certificate. Use {name} to greet each person. It sends to your participant list from section 4, unless you choose a different file here.</p>
+<div class="g">
+<label class="w">Subject<input id="bsub" data-s placeholder="Reminder: joining link for Saturday"></label>
+<label class="w">Message<textarea id="bmsg" data-s>Hi {name},
+
+
+
+Best regards,
+{org}</textarea></label>
+<label>Different recipients file <small>(optional, Name and Email columns)</small><input id="bx" type="file" accept=".xlsx,.xls,.csv"></label>
+<label>Attachment <small>(optional, keep it under 2 MB)</small><input id="ba" type="file"></label>
+<label>Your test address<input id="tst" data-s type="email" placeholder="you@gmail.com"></label>
+</div>
+<div id="bc" class="sub" style="margin:10px 0 0"></div><div class="tw"><table id="bt"></table></div>
+<div class="row"><button class="o" id="btest">Send a test to me</button><button id="bgo">Send bulk email</button></div></section>
+</main>
+<div id="dock" hidden><div id="bar"><i></i></div><small id="st"></small></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-const $=id=>document.getElementById(id);
-const F=['org','event','date','title','body','signer','role','color','subject','msg','url','pass'];
-let logo='',sig='',people=[];
+const $=id=>document.getElementById(id),val=id=>$(id).value,pc=id=>+val(id)/100;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function save(){const o={logo,sig};F.forEach(f=>o[f]=$(f).value);try{localStorage.setItem('cs',JSON.stringify(o))}catch(e){}}
-try{const o=JSON.parse(localStorage.getItem('cs')||'{}');F.forEach(f=>{if(o[f])$(f).value=o[f]});logo=o.logo||'';sig=o.sig||''}catch(e){}
-F.forEach(f=>$(f).addEventListener('input',save));
+const SZ={a4l:[1754,1240,'A4 landscape'],a4p:[1240,1754,'A4 portrait'],ll:[1650,1275,'US Letter landscape'],lp:[1275,1650,'US Letter portrait'],sq:[1200,1200,'Square (social media)'],wide:[1920,1080,'Widescreen 16:9']};
+const HF=['Playfair Display','Cormorant Garamond','Cinzel','Montserrat','Lora','Inter'],NF=['Great Vibes','Pinyon Script','Dancing Script','Playfair Display','Cormorant Garamond','Montserrat'];
+const PRE={classic:['#0f5c4d','#b8913a','#ffffff','#1f2a37','Playfair Display','Great Vibes'],modern:['#1d4ed8','#f59e0b','#ffffff','#111827','Montserrat','Montserrat'],elegant:['#7a1f3d','#b8913a','#fbf6ec','#3a2a2a','Cormorant Garamond','Pinyon Script'],bold:['#e11d48','#111827','#ffffff','#111827','Montserrat','Dancing Script'],minimal:['#0f766e','#94a3b8','#ffffff','#222222','Lora','Cormorant Garamond']};
+const opt=(a,f)=>a.map(f).join('');
+$('csz').innerHTML=$('rsz').innerHTML=opt(Object.entries(SZ),([k,v])=>`<option value="${k}">${v[2]}</option>`);
+$('hf').innerHTML=opt(HF,f=>`<option>${f}</option>`);$('nf').innerHTML=opt(NF,f=>`<option>${f}</option>`);
+$('rsz').value='a4p';
+let logo='',people=[],signers=[{name:'',role:''}],speakers=[{name:'',topic:'',email:''}];
+const LST={sg:[signers,[['name','Name'],['role','Role / title']],'Signature image'],spk:[speakers,[['name','Speaker name'],['topic','Topic / session'],['email','Email (optional)']],'Speaker photo']};
 const readURL=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(f)});
-$('logo').onchange=async e=>{logo=e.target.files[0]?await readURL(e.target.files[0]):'';save()};
-$('sig').onchange=async e=>{sig=e.target.files[0]?await readURL(e.target.files[0]):'';save()};
-const img=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=s});
-const fill=(t,n)=>t.replace(/{name}/g,n).replace(/{event}/g,$('event').value).replace(/{org}/g,$('org').value).replace(/{date}/g,$('date').value);
+function sv(){const o={logo,signers,speakers:speakers.map(({img,...r})=>r)};document.querySelectorAll('[data-s]').forEach(e=>o[e.id]=e.value);try{localStorage.setItem('cs2',JSON.stringify(o))}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem('cs2')||'{}');document.querySelectorAll('[data-s]').forEach(e=>{if(o[e.id]!=null)e.value=o[e.id]});logo=o.logo||'';if(o.signers&&o.signers.length)signers.splice(0,1,...o.signers);if(o.speakers&&o.speakers.length)speakers.splice(0,1,...o.speakers)}catch(e){}
+function render(id){
+  const [arr,cols,ph]=LST[id],b=$(id);b.innerHTML='';
+  arr.forEach((o,i)=>{const r=document.createElement('div');r.className='rw';
+    cols.forEach(([k,p])=>{const e=document.createElement('input');e.placeholder=p;e.value=o[k]||'';e.oninput=()=>{o[k]=e.value;sv();rf()};r.append(e)});
+    const f=document.createElement('input');f.type='file';f.accept='image/*';f.title=ph;f.onchange=async()=>{o.img=f.files[0]?await readURL(f.files[0]):'';sv();rf()};r.append(f);
+    if(arr.length>1){const d=document.createElement('button');d.className='o';d.textContent='Remove';d.onclick=()=>{arr.splice(i,1);sv();render(id);rf()};r.append(d)}
+    const s=document.createElement('small');s.id=id+'s'+i;r.append(s);b.append(r)});
+}
+$('addsg').onclick=()=>{signers.push({name:'',role:''});render('sg');rf()};
+$('addsp').onclick=()=>{speakers.push({name:'',topic:'',email:''});render('spk')};
+render('sg');render('spk');
+$('logo').onchange=async e=>{logo=e.target.files[0]?await readURL(e.target.files[0]):'';sv();rf()};
+$('style').onchange=()=>{['c1','c2','c3','c4','hf','nf'].forEach((k,i)=>$(k).value=PRE[val('style')][i]);sv();rf()};
+document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.s!=null)sv();rf()});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.s!=null)sv();rf()});
+
+const IM={},img=s=>IM[s]||(IM[s]=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=s}));
+const fill=(t,n,tp='')=>t.replace(/{name}/g,n).replace(/{topic}/g,tp||'').replace(/{event}/g,val('event')).replace(/{org}/g,val('org')).replace(/{date}/g,val('date'));
+function wrapL(x,t,mw){const o=[];let l='';for(const w of t.split(' ')){const n=l+w+' ';if(x.measureText(n).width>mw&&l){o.push(l.trim());l=w+' '}else l=n}o.push(l.trim());return o}
+
+async function draw(kind,p){
+  const [W,H]=SZ[val(kind=='c'?'csz':'rsz')],u=Math.min(W,H)/1240;
+  const [hf,nf,c1,c2,c3,c4,st]=['hf','nf','c1','c2','c3','c4','style'].map(val);
+  await Promise.all([`700 40px "${hf}"`,`40px "${nf}"`,'400 30px Inter','600 30px Inter'].map(f=>document.fonts.load(f)));
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle=c3;x.fillRect(0,0,W,H);
+  const B=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)},fr=(i,w,col)=>{x.strokeStyle=col;x.lineWidth=w;x.strokeRect(i,i,W-2*i,H-2*i)};
+  let L=0,top=130*u,gap=150*u,bot=190*u;
+  if(st=='classic'){fr(40*u,18*u,c1);fr(78*u,3*u,c1)}
+  else if(st=='modern'){B(0,0,110*u,H,c1);B(110*u,0,14*u,H,c2);L=124*u;gap=100*u}
+  else if(st=='elegant'){fr(50*u,4*u,c2);fr(68*u,2*u,c1);x.strokeStyle=c1;x.lineWidth=5*u;[[50,50,0],[W/u-50,50,.5],[W/u-50,H/u-50,1],[50,H/u-50,1.5]].forEach(([a,b,s])=>{x.beginPath();x.arc(a*u,b*u,70*u,s*Math.PI,(s+.5)*Math.PI);x.stroke()})}
+  else if(st=='bold'){B(0,0,W,70*u,c1);B(0,70*u,W,14*u,c2);B(0,H-70*u,W,70*u,c1);B(0,H-84*u,W,14*u,c2);top=150*u;bot=215*u}
+  else{fr(60*u,2*u,c4);B(W/2-70*u,55*u,140*u,10*u,c1);top=140*u}
+  const cx=(L+W)/2,cw=W-L-2*gap,lineY=H-bot;
+  const T=(t,wt,fam,sz,col,yy,xx=cx,mw=cw)=>{let s=sz*u;do{x.font=`${wt} ${s}px "${fam}"`;s-=3}while(x.measureText(t).width>mw&&s>14);x.fillStyle=col;x.textAlign='center';x.fillText(t,xx,yy)};
+  const sigs=await Promise.all(signers.map(s=>s.img?img(s.img):null));
+  const sH=sigs.some(Boolean)?110*u*pc('ss'):0,avail=lineY-sH-20*u-top;
+  const E=[],add=(h,f)=>E.push([h,f]);
+  if(logo){const g=await img(logo),s=Math.min(420*u*pc('ls')/g.width,170*u*pc('ls')/g.height);add(g.height*s+28*u,y=>x.drawImage(g,cx-g.width*s/2,y,g.width*s,g.height*s))}
+  if(val('org'))add(60*u,y=>T(val('org'),600,'Inter',34,c1,y+34*u));
+  add(104*u,y=>T(val(kind=='c'?'title':'ctitle'),700,hf,84,c4,y+78*u));
+  add(66*u,y=>T(kind=='c'?'This certificate is proudly presented to':'This citation of appreciation is presented to',400,'Inter',30,c4,y+30*u));
+  if(kind=='r'&&p.img){const g=await img(p.img),d=260*u*pc('ps'),sh=val('psh');
+    const path=(a,y)=>{x.beginPath();if(sh=='circle')x.arc(cx,y+d/2,d/2,0,7);else x.roundRect(a,y,d,d,sh=='round'?d*.14:0)};
+    add(d+36*u,y=>{const a=cx-d/2,m=Math.min(g.width,g.height);x.save();path(a,y);x.clip();x.drawImage(g,(g.width-m)/2,(g.height-m)/2,m,m,a,y,d,d);x.restore();x.strokeStyle=c2;x.lineWidth=8*u;path(a,y);x.stroke()})}
+  const sc=/Vibes|Script/.test(nf);
+  add(172*u,y=>{T(p.name,sc?400:700,nf,sc?150:90,c1,y+(sc?120:100)*u);const w=Math.min(420*u,cw/2);B(cx-w,y+148*u,2*w,3*u,c2)});
+  x.font=`400 ${34*u}px Inter`;const ln=wrapL(x,fill(val(kind=='c'?'body':'cbody'),p.name,p.topic),Math.min(1100*u,cw));
+  add(ln.length*50*u+30*u,y=>{x.font=`400 ${34*u}px Inter`;x.fillStyle=c4;x.textAlign='center';ln.forEach((l,i)=>x.fillText(l,cx,y+36*u+i*50*u))});
+  let y=top+Math.max(0,(avail-E.reduce((a,e)=>a+e[0],0))*.4);
+  E.forEach(([h,f])=>{f(y);y+=h});
+  const n=signers.length,sw=(W-L-120*u)/n,lw=Math.min(380*u,sw*.8);
+  signers.forEach((s,i)=>{const sx=L+60*u+sw*(i+.5),g=sigs[i];
+    if(g){const k=Math.min(lw*pc('ss')/g.width,110*u*pc('ss')/g.height);x.drawImage(g,sx-g.width*k/2,lineY-8*u-g.height*k,g.width*k,g.height*k)}
+    B(sx-lw/2,lineY,lw,2*u,c4);
+    T(s.name||'',600,'Inter',n>3?24:30,c4,lineY+42*u,sx,sw*.92);T(s.role||'',400,'Inter',n>3?20:25,c4,lineY+78*u,sx,sw*.92)});
+  return c;
+}
+async function blob(kind,p,fmt){
+  const c=await draw(kind,p);
+  if(fmt=='png')return new Promise(r=>c.toBlob(r,'image/png'));
+  const k=25.4/150,W=c.width*k,H=c.height*k,d=new jspdf.jsPDF({orientation:W>H?'l':'p',unit:'mm',format:[W,H]});
+  d.addImage(c.toDataURL('image/jpeg',.9),'JPEG',0,0,W,H);return d.output('blob');
+}
+let tm;const rf=()=>{clearTimeout(tm);tm=setTimeout(prev,250)};
+async function prev(){const k=val('pk'),s=speakers[0],p=k=='c'?{name:people[0]?people[0].name:'Participant Name'}:{...s,name:s.name||'Speaker Name',topic:s.topic||'Your session topic'};
+  const c=await draw(k,p),v=$('pc');v.width=c.width;v.height=c.height;v.getContext('2d').drawImage(c,0,0)}
+prev();
 
 $('xl').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  const wb=XLSX.read(await f.arrayBuffer());
-  const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+  const wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
   const get=(r,k)=>{const key=Object.keys(r).find(x=>x.trim().toLowerCase()===k);return key?String(r[key]).trim():''};
   const all=rows.map(r=>({name:get(r,'name'),email:get(r,'email')})).filter(p=>p.name||p.email);
-  const ok=p=>p.name&&/^\S+@\S+\.\S+$/.test(p.email);
-  people=all.filter(ok);
-  const skipped=all.length-people.length;
-  $('count').textContent=people.length+' participants ready'+(skipped?` (${skipped} skipped: missing name or invalid email)`:'');
+  people=all.filter(p=>p.name&&/^\S+@\S+\.\S+$/.test(p.email));
+  const sk=all.length-people.length;
+  $('count').textContent=people.length+' participants ready'+(sk?` (${sk} skipped: missing name or invalid email)`:'');
   $('tb').innerHTML='<tr><th>Name</th><th>Email</th><th>Status</th></tr>'+people.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${esc(p.email)}</td><td id="s${i}">Ready</td></tr>`).join('');
+  rf();bshow();
 };
-
-function wrap(x,t,cx,y,mw,lh){let l='';for(const w of t.split(' ')){const n=l+w+' ';if(x.measureText(n).width>mw&&l){x.fillText(l.trim(),cx,y);y+=lh;l=w+' '}else l=n}x.fillText(l.trim(),cx,y)}
-async function draw(name){
-  await Promise.all(['80px "Great Vibes"','700 60px "Playfair Display"','600 30px Inter'].map(f=>document.fonts.load(f)));
-  const W=1754,H=1240,c=document.createElement('canvas');c.width=W;c.height=H;
-  const x=c.getContext('2d'),col=$('color').value;
-  x.fillStyle='#fff';x.fillRect(0,0,W,H);
-  x.strokeStyle=col;x.lineWidth=18;x.strokeRect(40,40,W-80,H-80);x.lineWidth=3;x.strokeRect(78,78,W-156,H-156);
-  x.textAlign='center';
-  if(logo){const l=await img(logo),s=Math.min(420/l.width,170/l.height);x.drawImage(l,W/2-l.width*s/2,130,l.width*s,l.height*s)}
-  x.fillStyle=col;x.font='600 34px Inter';x.fillText($('org').value,W/2,360);
-  x.fillStyle='#1f2a37';x.font='700 84px "Playfair Display"';x.fillText($('title').value,W/2,480);
-  x.fillStyle='#6b7280';x.font='400 30px Inter';x.fillText('This certificate is proudly presented to',W/2,575);
-  x.fillStyle=col;let fs=150;x.font=`${fs}px "Great Vibes"`;
-  while(x.measureText(name).width>1200&&fs>60){fs-=6;x.font=`${fs}px "Great Vibes"`}
-  x.fillText(name,W/2,740);
-  x.fillStyle=col;x.fillRect(W/2-420,775,840,3);
-  x.fillStyle='#1f2a37';x.font='400 34px Inter';wrap(x,fill($('body').value,name),W/2,860,1100,50);
-  if(sig){const l=await img(sig),s=Math.min(260/l.width,110/l.height);x.drawImage(l,W/2-l.width*s/2,935,l.width*s,l.height*s)}
-  x.fillStyle='#1f2a37';x.fillRect(W/2-190,1058,380,2);
-  x.font='600 30px Inter';x.fillText($('signer').value,W/2,1100);
-  x.fillStyle='#6b7280';x.font='400 26px Inter';x.fillText($('role').value,W/2,1140);
-  return c;
-}
-async function pdf(name){
-  const c=await draw(name),d=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  d.addImage(c.toDataURL('image/jpeg',.88),'JPEG',0,0,297,210);return d.output('blob');
-}
-$('pv').onclick=async()=>{const c=await draw(people[0]?people[0].name:'Participant Name');$('prev').src=c.toDataURL('image/jpeg',.8);$('prev').hidden=false};
-const safe=s=>s.replace(/[^\w\- ]+/g,'').trim()||'certificate';
-const prog=(n,t,msg)=>{$('bar').hidden=false;$('bar').firstChild.style.width=(n/t*100)+'%';$('st').textContent=msg};
-
-$('dl').onclick=async()=>{
-  if(!people.length)return alert('Upload your participant file first.');
-  const z=new JSZip();
-  for(let i=0;i<people.length;i++){prog(i,people.length,`Creating ${i+1} of ${people.length}…`);z.file(`${i+1}-${safe(people[i].name)}.pdf`,await pdf(people[i].name))}
-  prog(1,1,'Done. Your ZIP is downloading.');
-  const a=document.createElement('a');a.href=URL.createObjectURL(await z.generateAsync({type:'blob'}));a.download='certificates.zip';a.click();
-};
-
+const safe=s=>s.replace(/[^\w\- ]+/g,'').trim()||'file';
+const prog=(n,t,m)=>{$('dock').hidden=false;$('bar').firstChild.style.width=(n/t*100)+'%';$('st').textContent=m};
 const b64=b=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result.split(',')[1]);x.readAsDataURL(b)});
-$('go').onclick=async()=>{
-  if(!people.length)return alert('Upload your participant file first.');
-  const url=$('url').value.trim(),pass=$('pass').value;
-  if(!url||!pass)return alert('Open "Email connection" and enter your Web app URL and passcode first.');
-  if(people.length>100&&!confirm('A free Gmail account can send to about 100 people per day. Emails after that will fail. Continue?'))return;
-  if(!confirm(`Send ${people.length} certificates by email now?`))return;
-  $('go').disabled=true;let done=0,fail=0;
-  for(let i=0;i<people.length;i++){
-    const p=people[i],cell=$('s'+i);cell.textContent='Sending…';cell.className='';prog(i,people.length,`Sending ${i+1} of ${people.length}…`);
+let busy=false;
+async function zip(items,kind,fmt){
+  if(busy)return;const L=items.filter(p=>p.name);if(!L.length)return alert('Add at least one name first.');
+  busy=true;const z=new JSZip();
+  for(let i=0;i<L.length;i++){prog(i,L.length,`Creating ${i+1} of ${L.length}…`);z.file(`${i+1}-${safe(L[i].name)}.${fmt}`,await blob(kind,L[i],fmt))}
+  prog(1,1,'Done. Your ZIP is downloading.');
+  const a=document.createElement('a');a.href=URL.createObjectURL(await z.generateAsync({type:'blob'}));a.download=(kind=='c'?'certificates':'citations')+'.zip';a.click();busy=false;
+}
+async function deliver(items,kind,sid,mid,setS){
+  if(busy)return;
+  const url=val('url').trim(),pass=val('pass');
+  if(!url||!pass)return alert('Open "Email connection" in section 4 and enter your Web app URL and passcode first.');
+  const ok=p=>p.name&&/^\S+@\S+\.\S+$/.test(p.email||''),n=items.filter(ok).length;
+  if(!n)return alert('No valid email addresses found.');
+  if(n>100&&!confirm('A free Gmail account can send to about 100 people per day. Emails after that will fail. Continue?'))return;
+  if(!confirm(`Send ${n} emails now?`))return;
+  busy=true;let d=0,f=0;
+  for(let i=0;i<items.length;i++){
+    const p=items[i];if(!ok(p)){setS(i,'No valid email','bad');continue}
+    setS(i,'Sending…','');prog(d+f,n,`Sending ${d+f+1} of ${n}…`);
     try{
-      const body=JSON.stringify({pass,sender:$('org').value,to:p.email,subject:fill($('subject').value,p.name),html:esc(fill($('msg').value,p.name)).replace(/\n/g,'<br>'),filename:`Certificate - ${p.name}.pdf`,pdf:await b64(await pdf(p.name))});
-      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
-      const j=await r.json();
+      const body=JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
+      const j=await(await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body})).json();
       if(!j.ok)throw new Error(j.error||'Failed');
-      cell.textContent='Sent';cell.className='ok';done++;
-    }catch(err){cell.textContent='Failed: '+err.message;cell.className='bad';fail++}
+      setS(i,'Sent','ok');d++;
+    }catch(err){setS(i,'Failed: '+err.message,'bad');f++}
   }
-  prog(1,1,`Finished: ${done} sent${fail?`, ${fail} failed (see the table)`:''}.`);
-  $('go').disabled=false;
-};
+  prog(1,1,`Finished: ${d} sent${f?`, ${f} failed`:''}.`);busy=false;
+}
+const mark=pre=>(i,t,c)=>{const e=$(pre+i);if(e){e.textContent=t;e.className=c}};
+$('dl').onclick=()=>zip(people,'c','pdf');
+$('dlr').onclick=()=>zip(speakers,'r',val('fmt'));
+$('go').onclick=()=>people.length?deliver(people,'c','subject','msg',mark('s')):alert('Upload your participant file first.');
+$('gor').onclick=()=>deliver(speakers,'r','csub','cmsg',mark('spks'));
+
+let att={},bulk=[];
+const bl=()=>bulk.length?bulk:people;
+function bshow(){const L=bl();$('bc').textContent=L.length?L.length+' recipients ready':'Upload your participants in section 4, or choose a recipients file here.';
+  $('bt').innerHTML=L.length?'<tr><th>Name</th><th>Email</th><th>Status</th></tr>'+L.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${esc(p.email)}</td><td id="bs${i}">Ready</td></tr>`).join(''):''}
+$('bx').onchange=async e=>{const f=e.target.files[0];bulk=[];
+  if(f){const wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    const get=(r,k)=>{const key=Object.keys(r).find(x=>x.trim().toLowerCase()===k);return key?String(r[key]).trim():''};
+    bulk=rows.map(r=>({name:get(r,'name')||'there',email:get(r,'email')})).filter(p=>/^\S+@\S+\.\S+$/.test(p.email))}
+  bshow()};
+$('ba').onchange=async e=>{const f=e.target.files[0];att=f?{filename:f.name,mime:f.type||'application/octet-stream',pdf:await b64(f)}:{}};
+$('bgo').onclick=()=>!val('bsub')?alert('Write a subject first.'):bl().length?deliver(bl(),'b','bsub','bmsg',mark('bs')):alert('Add recipients first.');
+$('btest').onclick=()=>!val('tst')?alert('Type your email address in the test box first.'):deliver([{name:'Test',email:val('tst').trim()}],'b','bsub','bmsg',()=>{});
+bshow();
 </script></body></html>
