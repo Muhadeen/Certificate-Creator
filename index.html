@@ -92,8 +92,9 @@ Warm regards,
 <div class="row"><button class="o" id="dl">Download certificates (ZIP)</button><button id="go">Email certificates</button></div>
 <details style="margin-top:18px"><summary>Email connection (one-time setup)</summary>
 <p class="h" style="margin-top:10px">Paste the Web app URL from your Google Apps Script and your secret passcode.</p>
-<div class="g"><label>Web app URL<input id="url" data-s placeholder="https://script.google.com/macros/s/.../exec"></label>
-<label>Passcode<input id="pass" data-s type="password"></label></div></details></section>
+<div class="g"><label class="w">Web app URLs <small>(one for each Gmail account, one per line)</small><textarea id="url" data-s placeholder="https://script.google.com/macros/s/.../exec"></textarea></label>
+<label>Passcode<input id="pass" data-s type="password"></label>
+<label>Emails per Gmail account per day<input id="gmcap" data-s type="number" value="100"></label></div></details></section>
 
 <section><h2>5. Speaker citations</h2><p class="h">Add each speaker with their photo. Email is optional; without it you can still download the citation.</p>
 <div id="spk"></div><button class="o" id="addsp">Add speaker</button>
@@ -236,15 +237,17 @@ async function zip(items,kind,fmt){
 }
 async function deliver(items,kind,sid,mid,setS){
   if(busy)return;
-  const url=val('url').trim(),pass=val('pass');
-  if(!url||!pass)return alert('Open "Email connection" in section 4 and enter your Web app URL and passcode first.');
+  const urls=val('url').split(/\s+/).filter(Boolean),pass=val('pass');
+  if(!urls.length||!pass)return alert('Open "Email connection" in section 4 and enter your Web app URL and passcode first.');
   const ok=p=>p.name&&/^\S+@\S+\.\S+$/.test(p.email||''),n=items.filter(ok).length;
   if(!n)return alert('No valid email addresses found.');
-  if(n>100&&!confirm('A free Gmail account can send to about 100 people per day. Emails after that will fail. Continue?'))return;
+  const G=+val('gmcap')||100,cap=G*urls.length;
+  if(n>cap&&!confirm(`You can send about ${cap} emails per day (${G} for each of your ${urls.length} Gmail account${urls.length>1?'s':''}). The last ${n-cap} will be skipped so you can send them tomorrow. Continue?`))return;
   if(!confirm(`Send ${n} emails now?`))return;
-  busy=true;let d=0,f=0;
+  busy=true;let d=0,f=0,c=0;
   for(let i=0;i<items.length;i++){
     const p=items[i];if(!ok(p)){setS(i,'No valid email','bad');continue}
+    const url=urls[Math.floor(c/G)];c++;if(!url){setS(i,'Skipped: daily limit. Send tomorrow','bad');f++;continue}
     setS(i,'Sending…','');prog(d+f,n,`Sending ${d+f+1} of ${n}…`);
     try{
       const body=JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
