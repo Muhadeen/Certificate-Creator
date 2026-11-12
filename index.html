@@ -39,9 +39,15 @@ td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd)}
 #bar i{display:block;height:100%;width:0;background:var(--pr);transition:width .2s}
 details summary{cursor:pointer;font-weight:600}
 small{color:var(--mut)}
+.big{font:800 2rem/1 "Playfair Display",serif;margin-top:4px}
 </style></head><body><main>
 <h1>Certificate Studio</h1>
 <p class="sub">Design certificates and speaker citations in your organization's style, then download or email them in one click.</p>
+
+<section><h2>Email tracker</h2><p class="h">Emails sent from this site in the last 24 hours, and how many you can still send today. Google resets an account 24 hours after its first send.</p>
+<div class="g" style="grid-template-columns:repeat(3,1fr)"><div><small>Sent (24 hours)</small><div class="big" id="t1">0</div></div><div><small>Remaining today</small><div class="big" id="t2">0</div></div><div><small>Daily capacity</small><div class="big" id="t3">0</div></div></div>
+<div class="tw"><table id="tt"></table></div>
+<div class="row"><button class="o" id="tchk">Check live quota from Google</button><button class="o" id="trst">Reset counter</button></div><small id="tmsg"></small></section>
 
 <section><h2>1. Your organization</h2><p class="h">These details are printed on your documents and saved in this browser. In the wording you can use {name}, {event}, {org}, {date} and {topic}.</p>
 <div class="g">
@@ -235,28 +241,41 @@ async function zip(items,kind,fmt){
   prog(1,1,'Done. Your ZIP is downloading.');
   const a=document.createElement('a');a.href=URL.createObjectURL(await z.generateAsync({type:'blob'}));a.download=(kind=='c'?'certificates':'citations')+'.zip';a.click();busy=false;
 }
+const getLog=()=>{try{return JSON.parse(localStorage.getItem('ica_log')||'[]').filter(r=>Date.now()-r.t<864e5)}catch(e){return[]}};
+const addLog=u=>{const l=getLog();l.push({t:Date.now(),u});try{localStorage.setItem('ica_log',JSON.stringify(l))}catch(e){}};
+const urlList=()=>val('url').split(/\s+/).filter(Boolean),live={};
+function remaining(){const G=+val('gmcap')||100,l=getLog();return urlList().map(u=>{const used=l.filter(r=>r.u==u).length,v=live[u];let rem=Math.max(0,G-used);if(v)rem=Math.max(0,v.rem-l.filter(r=>r.u==u&&r.t>v.t).length);return{used,rem,email:v&&v.email}})}
+function track(){const R=remaining(),G=+val('gmcap')||100;
+  $('t1').textContent=R.reduce((a,r)=>a+r.used,0);$('t2').textContent=R.reduce((a,r)=>a+r.rem,0);$('t3').textContent=R.length*G;
+  $('tt').innerHTML=R.length?'<tr><th>Account</th><th>Sent</th><th>Remaining</th></tr>'+R.map((r,i)=>`<tr><td>${esc(r.email||'Account '+(i+1))}</td><td>${r.used}</td><td>${r.rem}</td></tr>`).join(''):''}
 async function deliver(items,kind,sid,mid,setS){
   if(busy)return;
-  const urls=val('url').split(/\s+/).filter(Boolean),pass=val('pass');
-  if(!urls.length||!pass)return alert('Open "Email connection" in section 4 and enter your Web app URL and passcode first.');
+  const urls=urlList(),pass=val('pass');
+  if(!urls.length||!pass)return alert('Open "Email connection" in section 4 and enter your Web app URLs and passcode first.');
   const ok=p=>p.name&&/^\S+@\S+\.\S+$/.test(p.email||''),n=items.filter(ok).length;
   if(!n)return alert('No valid email addresses found.');
-  const G=+val('gmcap')||100,cap=G*urls.length;
-  if(n>cap&&!confirm(`You can send about ${cap} emails per day (${G} for each of your ${urls.length} Gmail account${urls.length>1?'s':''}). The last ${n-cap} will be skipped so you can send them tomorrow. Continue?`))return;
+  const rem=remaining().map(r=>r.rem),cap=rem.reduce((a,b)=>a+b,0);
+  if(n>cap&&!confirm(`You can send about ${cap} more emails today. The last ${n-cap} will be skipped so you can send them tomorrow. Continue?`))return;
   if(!confirm(`Send ${n} emails now?`))return;
-  busy=true;let d=0,f=0,c=0;
+  busy=true;let d=0,f=0;
   for(let i=0;i<items.length;i++){
     const p=items[i];if(!ok(p)){setS(i,'No valid email','bad');continue}
-    const url=urls[Math.floor(c/G)];c++;if(!url){setS(i,'Skipped: daily limit. Send tomorrow','bad');f++;continue}
     setS(i,'Sending…','');prog(d+f,n,`Sending ${d+f+1} of ${n}…`);
-    try{
-      const body=JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
-      const j=await(await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body})).json();
-      if(!j.ok)throw new Error(j.error||'Failed');
-      setS(i,'Sent','ok');d++;
-    }catch(err){setS(i,'Failed: '+err.message,'bad');f++}
+    let done=false,msg='Skipped: daily limit. Send tomorrow',body;
+    while(!done){
+      const a=rem.findIndex(r=>r>0);if(a<0)break;
+      try{
+        body=body||JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
+        const j=await(await fetch(urls[a],{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body})).json();
+        if(!j.ok)throw new Error(j.error||'Failed');
+        rem[a]--;addLog(urls[a]);done=true;
+      }catch(err){msg='Failed: '+err.message;if(/too many|quota|limit/i.test(err.message))rem[a]=0;else break}
+    }
+    if(done){setS(i,'Sent','ok');d++}else{setS(i,msg,'bad');f++}
+    track();
   }
-  prog(1,1,`Finished: ${d} sent${f?`, ${f} failed`:''}.`);busy=false;
+  const left=remaining().reduce((a,r)=>a+r.rem,0);
+  prog(1,1,`Finished: ${d} sent${f?`, ${f} not sent`:''}. About ${left} emails left today.`);busy=false;track();
 }
 const mark=pre=>(i,t,c)=>{const e=$(pre+i);if(e){e.textContent=t;e.className=c}};
 $('dl').onclick=()=>zip(people,'c','pdf');
@@ -277,4 +296,12 @@ $('ba').onchange=async e=>{const f=e.target.files[0];att=f?{filename:f.name,mime
 $('bgo').onclick=()=>!val('bsub')?alert('Write a subject first.'):bl().length?deliver(bl(),'b','bsub','bmsg',mark('bs')):alert('Add recipients first.');
 $('btest').onclick=()=>!val('tst')?alert('Type your email address in the test box first.'):deliver([{name:'Test',email:val('tst').trim()}],'b','bsub','bmsg',()=>{});
 bshow();
+
+document.addEventListener('input',e=>{if(e.target.id=='url'||e.target.id=='gmcap')track()});
+$('trst').onclick=()=>{if(confirm('Reset the sent counter to zero? Only do this if you know the accounts have fresh daily limits.')){try{localStorage.removeItem('ica_log')}catch(e){}for(const k in live)delete live[k];track()}};
+$('tchk').onclick=async()=>{const us=urlList(),pass=val('pass');if(!us.length||!pass)return alert('Add your Web app URLs and passcode in Email connection first.');
+  $('tmsg').textContent='Checking…';let bad=0;
+  await Promise.all(us.map(async u=>{try{const j=await(await fetch(u+(u.includes('?')?'&':'?')+'pass='+encodeURIComponent(pass))).json();if(!j.ok)throw 0;live[u]={rem:j.remaining,email:j.email,t:Date.now()}}catch(e){bad++}}));
+  $('tmsg').textContent=bad?`Could not check ${bad} account(s). Their script may need the latest version.`:'Live numbers loaded from Google.';track()};
+track();setInterval(track,60000);
 </script></body></html>
