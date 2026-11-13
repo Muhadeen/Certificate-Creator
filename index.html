@@ -257,23 +257,21 @@ async function deliver(items,kind,sid,mid,setS){
   const rem=remaining().map(r=>r.rem),cap=rem.reduce((a,b)=>a+b,0);
   if(n>cap&&!confirm(`You can send about ${cap} more emails today. The last ${n-cap} will be skipped so you can send them tomorrow. Continue?`))return;
   if(!confirm(`Send ${n} emails now?`))return;
-  busy=true;let d=0,f=0;
-  for(let i=0;i<items.length;i++){
-    const p=items[i];if(!ok(p)){setS(i,'No valid email','bad');continue}
-    setS(i,'Sending…','');prog(d+f,n,`Sending ${d+f+1} of ${n}…`);
-    let done=false,msg='Skipped: daily limit. Send tomorrow',body;
-    while(!done){
-      const a=rem.findIndex(r=>r>0);if(a<0)break;
-      try{
-        body=body||JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
-        const j=await(await fetch(urls[a],{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body})).json();
-        if(!j.ok)throw new Error(j.error||'Failed');
-        rem[a]--;addLog(urls[a]);done=true;
-      }catch(err){msg='Failed: '+err.message;if(/too many|quota|limit/i.test(err.message))rem[a]=0;else break}
-    }
-    if(done){setS(i,'Sent','ok');d++}else{setS(i,msg,'bad');f++}
-    track();
+  busy=true;let d=0,f=0,fin=0;
+  const q=urls.map(()=>[]),rm=[...rem],CONC=4;
+  items.forEach((p,i)=>{if(!ok(p)){setS(i,'No valid email','bad');return}const a=rm.findIndex(r=>r>0);if(a<0){setS(i,'Skipped: daily limit. Send tomorrow','bad');f++;return}rm[a]--;q[a].push(i);setS(i,'Waiting…','')});
+  const tot=q.reduce((t,l)=>t+l.length,0);
+  async function one(a,i){const p=items[i];setS(i,'Sending…','');
+    try{
+      const body=JSON.stringify({pass,sender:val('org'),to:p.email,subject:fill(val(sid),p.name,p.topic),html:esc(fill(val(mid),p.name,p.topic)).replace(/\n/g,'<br>'),...(kind=='b'?att:{filename:`${kind=='c'?'Certificate':'Citation'} - ${p.name}.pdf`,pdf:await b64(await blob(kind,p,'pdf'))})});
+      const j=await(await fetch(urls[a],{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body})).json();
+      if(!j.ok)throw new Error(j.error||'Failed');
+      addLog(urls[a]);setS(i,'Sent','ok');d++;
+    }catch(err){setS(i,'Failed: '+err.message,'bad');f++}
+    fin++;prog(fin,tot,`Processed ${fin} of ${tot} (${d} sent)…`);track();
   }
+  prog(0,tot,'Starting…');
+  await Promise.all(q.map(async(list,a)=>{let k=0;await Promise.all(Array.from({length:CONC},async()=>{while(k<list.length)await one(a,list[k++])}))}));
   const left=remaining().reduce((a,r)=>a+r.rem,0);
   prog(1,1,`Finished: ${d} sent${f?`, ${f} not sent`:''}. About ${left} emails left today.`);busy=false;track();
 }
